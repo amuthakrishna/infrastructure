@@ -88,23 +88,25 @@ stages:
   - stage: Destroy
     displayName: Terraform Destroy
     dependsOn: Terraform
-    condition: succeeded()  
-      
+    condition: succeeded()
     jobs:
-      - job: TerraformDestroy
+      - deployment: TerraformDestroy  # ✅ Use 'deployment' instead of 'job'
         displayName: Destroy Infrastructure
-        environment: 'Manual-Approval'
-        steps:
-          - checkout: self
+        environment: 'Manual-Approval'  # ✅ Now valid here
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - script: terraform init
+                  displayName: 'Terraform Init'
+                  workingDirectory: '$(System.DefaultWorkingDirectory)'
 
-          - script: terraform init
-            displayName: 'Terraform Init'
-            workingDirectory: '$(System.DefaultWorkingDirectory)'
+                - script: |
+                    terraform destroy --auto-approve \
+                    -var-file="terraform.tfvars" \
+                    -var="container_image_app=$(container_image_app)" \
+                    -var="container_image_nginx=$(container_image_nginx)"
+                  displayName: 'Terraform Destroy'
+                  workingDirectory: '$(System.DefaultWorkingDirectory)'
 
-          - script: |
-              terraform destroy --auto-approve \
-                -var-file="terraform.tfvars" \
-                -var="container_image_app=$(container_image_app)" \
-                -var="container_image_nginx=$(container_image_nginx)"
-            displayName: 'Terraform Destroy'
-            workingDirectory: '$(System.DefaultWorkingDirectory)'
