@@ -1,19 +1,86 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
-- main
+  - main
 
 pool:
-  vmImage: ubuntu-latest
+  name: 'Default'  # Use 'ubuntu-latest' if not using a self-hosted agent
 
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+variables:
+  - group: aws_ecr_repo  # Must contain required ECR & image name variables
+  - name: IMAGE_TAG
+    value: $(Build.BuildId)
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+stages:
+  - stage: DockerLogin
+    displayName: Docker Login
+    jobs:
+      - job: DockerLogin
+        displayName: Docker Login Job
+        steps:
+          - script: |
+              echo "Logging into AWS ECR..."
+              aws ecr get-login-password --region "$(Region)" | \
+              docker login --username AWS --password-stdin "$(aws_account).dkr.ecr.$(Region).amazonaws.com"
+            displayName: 'Login to Docker'
+
+  - stage: BuildPush
+    displayName: Build and Push Docker Image
+    dependsOn: DockerLogin
+    jobs:
+      - job: DockerBuildPush
+        displayName: Build and Push Image
+        steps: 
+          - checkout: self
+
+          - script: |
+              echo "rails_app_image: $(rails_app_image)"
+              echo "nginx_image: $(nginx_image)"
+              echo "IMAGE_TAG: $(IMAGE_TAG)"
+            displayName: 'Print Docker Variables'
+
+          - script: |
+              echo "Building webserver image"
+              docker build -t $(rails_app_image):$(IMAGE_TAG) -f project/docker/app/Dockerfile .
+
+              echo "Building nginx image"
+              docker build -t $(nginx_image):$(IMAGE_TAG) -f project/docker/nginx/Dockerfile .
+
+              echo "Pushing images to ECR..."
+              docker push $(rails_app_image):$(IMAGE_TAG)
+              docker push $(nginx_image):$(IMAGE_TAG)
+            displayName: 'Build and Push Docker Images'
+
+  - stage: Terraform
+    displayName: Terraform Apply
+    dependsOn: BuildPush
+    variables:
+      CONTAINER_IMAGE_WEBSERVER: "$(rails_app_image):$(IMAGE_TAG)"  
+      CONTAINER_IMAGE_NGINX: "$(nginx_image):$(IMAGE_TAG)"  
+
+    jobs:
+      - job: Terraform
+        displayName: Terraform Job
+        steps:
+          - checkout: self
+
+          - script: terraform version
+            displayName: 'Check Terraform Version'
+
+          - script: terraform init
+            displayName: 'Terraform Init'
+            workingDirectory: '$(System.DefaultWorkingDirectory)'
+
+          - script: |
+              terraform plan \
+                -var-file="terraform.tfvars" \
+                -var="container_image_webserver=$(CONTAINER_IMAGE_WEBSERVER)" \
+                -var="container_image_nginx=$(CONTAINER_IMAGE_NGINX)"
+            displayName: 'Terraform Plan'
+            workingDirectory: '$(System.DefaultWorkingDirectory)'
+
+          - script: |
+              terraform apply --auto-approve \
+                -var-file="terraform.tfvars" \
+                -var="container_image_webserver=$(CONTAINER_IMAGE_WEBSERVER)" \
+                -var="container_image_nginx=$(CONTAINER_IMAGE_NGINX)"
+            displayName: 'Terraform Apply'
+            workingDirectory: '$(System.DefaultWorkingDirectory)'

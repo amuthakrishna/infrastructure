@@ -69,13 +69,13 @@ variable "env_s3_key" {
 variable "rails_app_image" {
   description = "ECR image URI for Rails app"
   type        = string
-  default     = "413745378153.dkr.ecr.ap-south-1.amazonaws.com/rails-app-rails-app:latest"
+#  default     = "413745378153.dkr.ecr.ap-south-1.amazonaws.com/rails-app-rails-app:latest"
 }
 
 variable "nginx_image" {
   description = "ECR image URI for Nginx"
   type        = string
-  default     = "413745378153.dkr.ecr.ap-south-1.amazonaws.com/rails-app-nginx:v2"
+#  default     = "413745378153.dkr.ecr.ap-south-1.amazonaws.com/rails-app-nginx:v2"
 }
 
 variable "environment" {
