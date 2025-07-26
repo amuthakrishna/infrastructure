@@ -53,8 +53,8 @@ stages:
     displayName: Terraform Apply
     dependsOn: BuildPush
     variables:
-      CONTAINER_IMAGE_WEBSERVER: "$(rails_app_image):$(IMAGE_TAG)"  
-      CONTAINER_IMAGE_NGINX: "$(nginx_image):$(IMAGE_TAG)"  
+      rails_app_image: "$(rails_app_image):$(IMAGE_TAG)"  
+      nginx_image: "$(nginx_image):$(IMAGE_TAG)"  
 
     jobs:
       - job: Terraform
@@ -72,15 +72,15 @@ stages:
           - script: |
               terraform plan \
                 -var-file="terraform.tfvars" \
-                -var="container_image_webserver=$(CONTAINER_IMAGE_WEBSERVER)" \
-                -var="container_image_nginx=$(CONTAINER_IMAGE_NGINX)"
+                -var="rails_app_image=$(rails_app_image)" \
+                -var="nginx_image=$(nginx_image)"
             displayName: 'Terraform Plan'
             workingDirectory: '$(System.DefaultWorkingDirectory)'
 
           - script: |
               terraform apply --auto-approve \
                 -var-file="terraform.tfvars" \
-                -var="container_image_webserver=$(CONTAINER_IMAGE_WEBSERVER)" \
-                -var="container_image_nginx=$(CONTAINER_IMAGE_NGINX)"
+                -var="rails_app_image=$(rails_app_image)" \
+                -var="nginx_image=$(nginx_image)"
             displayName: 'Terraform Apply'
             workingDirectory: '$(System.DefaultWorkingDirectory)'
