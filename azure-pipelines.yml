@@ -89,10 +89,11 @@ stages:
     displayName: Terraform Destroy
     dependsOn: Terraform
     condition: succeeded()  
-    environment: 'Manual-Approval'  
+      
     jobs:
       - job: TerraformDestroy
         displayName: Destroy Infrastructure
+        environment: 'Manual-Approval'
         steps:
           - checkout: self
 
