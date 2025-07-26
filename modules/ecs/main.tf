@@ -160,6 +160,7 @@ resource "aws_ecs_service" "app" {
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.app.arn
   desired_count   = var.ecs_service_desired_count
+  force_new_deployment = true
   launch_type     = "FARGATE"
 
   network_configuration {
