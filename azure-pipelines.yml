@@ -32,12 +32,6 @@ stages:
           - checkout: self
 
           - script: |
-              echo "container_image_app: $(container_image_app)"
-              echo "container_image_nginx: $(container_image_nginx)"
-              echo "IMAGE_TAG: $(IMAGE_TAG)"
-            displayName: 'Print Docker Variables'
-
-          - script: |
               echo "Building app image"
               docker build -t $(container_image_app):$(IMAGE_TAG) -f project/docker/app/Dockerfile .
 
@@ -53,8 +47,8 @@ stages:
     displayName: Terraform Apply
     dependsOn: BuildPush
     variables:
-      container_image_app: "$(container_image_app):$(IMAGE_TAG)"  
-      container_image_nginx: "$(container_image_nginx):$(IMAGE_TAG)"  
+      IMAGE_APP: "$(container_image_app):$(IMAGE_TAG)"  
+      IMAGE_NGINX: "$(container_image_nginx):$(IMAGE_TAG)"  
 
     jobs:
       - job: Terraform
@@ -72,16 +66,16 @@ stages:
           - script: |
               terraform plan \
                 -var-file="terraform.tfvars" \
-                -var="container_image_app=$(container_image_app)" \
-                -var="container_image_nginx=$(container_image_nginx)"
+                -var="container_image_app=$(IMAGE_APP)" \
+                -var="container_image_nginx=$(IMAGE_NGINX)"
             displayName: 'Terraform Plan'
             workingDirectory: '$(System.DefaultWorkingDirectory)'
 
           - script: |
               terraform apply --auto-approve \
                 -var-file="terraform.tfvars" \
-                -var="container_image_app=$(container_image_app)" \
-                -var="container_image_nginx=$(container_image_nginx)"
+                -var="container_image_app=$(IMAGE_APP)" \
+                -var="container_image_nginx=$(IMAGE_NGINX)"
             displayName: 'Terraform Apply'
             workingDirectory: '$(System.DefaultWorkingDirectory)'
 
@@ -105,7 +99,7 @@ stages:
                 - script: |
                     terraform destroy --auto-approve \
                     -var-file="terraform.tfvars" \
-                    -var="container_image_app=$(container_image_app)" \
-                    -var="container_image_nginx=$(container_image_nginx)"
+                    -var="container_image_app=$(IMAGE_NGINX)" \
+                    -var="container_image_nginx=$(IMAGE_APP)"
                   displayName: 'Terraform Destroy'
                   workingDirectory: '$(System.DefaultWorkingDirectory)'
