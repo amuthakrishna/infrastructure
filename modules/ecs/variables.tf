@@ -56,12 +56,12 @@ variable "alb_security_group_id" {
   type        = string
 }
 
-variable "rails_app_image" {
+variable "container_image_app" {
   description = "ECR image URI for Rails app"
   type        = string
 }
 
-variable "nginx_image" {
+variable "container_image_nginx" {
   description = "ECR image URI for Nginx"
   type        = string
 }

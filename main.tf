@@ -61,7 +61,7 @@ module "ecs" {
   env_file_s3_arn           = module.s3.env_file_s3_arn
   target_group_arn          = module.alb.target_group_arn
   alb_security_group_id     = module.alb.alb_security_group_id
-  rails_app_image           = var.rails_app_image
-  nginx_image               = var.nginx_image
+  container_image_app           = var.container_image_app
+  container_image_nginx               = var.container_image_nginx
   tags                      = var.tags
 }

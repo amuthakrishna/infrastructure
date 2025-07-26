@@ -5,7 +5,7 @@ pool:
   name: 'Default'  # Use 'ubuntu-latest' if not using a self-hosted agent
 
 variables:
-  - group: aws_ecr_repo  # Must contain required ECR & image name variables
+  - group: aws_ecr_repo  # Should include aws_account, Region, container_image_app, container_image_nginx
   - name: IMAGE_TAG
     value: $(Build.BuildId)
 
@@ -32,29 +32,29 @@ stages:
           - checkout: self
 
           - script: |
-              echo "rails_app_image: $(rails_app_image)"
-              echo "nginx_image: $(nginx_image)"
+              echo "container_image_app: $(container_image_app)"
+              echo "container_image_nginx: $(container_image_nginx)"
               echo "IMAGE_TAG: $(IMAGE_TAG)"
             displayName: 'Print Docker Variables'
 
           - script: |
-              echo "Building webserver image"
-              docker build -t $(rails_app_image):$(IMAGE_TAG) -f project/docker/app/Dockerfile .
+              echo "Building app image"
+              docker build -t $(container_image_app):$(IMAGE_TAG) -f project/docker/app/Dockerfile .
 
               echo "Building nginx image"
-              docker build -t $(nginx_image):$(IMAGE_TAG) -f project/docker/nginx/Dockerfile .
+              docker build -t $(container_image_nginx):$(IMAGE_TAG) -f project/docker/nginx/Dockerfile .
 
               echo "Pushing images to ECR..."
-              docker push $(rails_app_image):$(IMAGE_TAG)
-              docker push $(nginx_image):$(IMAGE_TAG)
+              docker push $(container_image_app):$(IMAGE_TAG)
+              docker push $(container_image_nginx):$(IMAGE_TAG)
             displayName: 'Build and Push Docker Images'
 
   - stage: Terraform
     displayName: Terraform Apply
     dependsOn: BuildPush
     variables:
-      rails_app_image: "$(rails_app_image):$(IMAGE_TAG)"  
-      nginx_image: "$(nginx_image):$(IMAGE_TAG)"  
+      container_image_app: "$(container_image_app):$(IMAGE_TAG)"  
+      container_image_nginx: "$(container_image_nginx):$(IMAGE_TAG)"  
 
     jobs:
       - job: Terraform
@@ -72,15 +72,38 @@ stages:
           - script: |
               terraform plan \
                 -var-file="terraform.tfvars" \
-                -var="rails_app_image=$(rails_app_image)" \
-                -var="nginx_image=$(nginx_image)"
+                -var="container_image_app=$(container_image_app)" \
+                -var="container_image_nginx=$(container_image_nginx)"
             displayName: 'Terraform Plan'
             workingDirectory: '$(System.DefaultWorkingDirectory)'
 
           - script: |
               terraform apply --auto-approve \
                 -var-file="terraform.tfvars" \
-                -var="rails_app_image=$(rails_app_image)" \
-                -var="nginx_image=$(nginx_image)"
+                -var="container_image_app=$(container_image_app)" \
+                -var="container_image_nginx=$(container_image_nginx)"
             displayName: 'Terraform Apply'
+            workingDirectory: '$(System.DefaultWorkingDirectory)'
+
+  - stage: Destroy
+    displayName: Terraform Destroy
+    dependsOn: Terraform
+    condition: succeeded()  
+    environment: 'Manual-Approval'  
+    jobs:
+      - job: TerraformDestroy
+        displayName: Destroy Infrastructure
+        steps:
+          - checkout: self
+
+          - script: terraform init
+            displayName: 'Terraform Init'
+            workingDirectory: '$(System.DefaultWorkingDirectory)'
+
+          - script: |
+              terraform destroy --auto-approve \
+                -var-file="terraform.tfvars" \
+                -var="container_image_app=$(container_image_app)" \
+                -var="container_image_nginx=$(container_image_nginx)"
+            displayName: 'Terraform Destroy'
             workingDirectory: '$(System.DefaultWorkingDirectory)'

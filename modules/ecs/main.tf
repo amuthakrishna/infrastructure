@@ -95,7 +95,7 @@ resource "aws_ecs_task_definition" "app" {
   container_definitions = jsonencode([
     {
       name  = "rails_app"
-      image = var.rails_app_image
+      image = var.container_image_app
       portMappings = [
         {
           containerPort = 3000
@@ -125,7 +125,7 @@ resource "aws_ecs_task_definition" "app" {
     },
     {
       name  = "nginx"
-      image = var.nginx_image
+      image = var.container_image_nginx
       portMappings = [
         {
           containerPort = 80
