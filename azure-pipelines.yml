@@ -109,4 +109,3 @@ stages:
                     -var="container_image_nginx=$(container_image_nginx)"
                   displayName: 'Terraform Destroy'
                   workingDirectory: '$(System.DefaultWorkingDirectory)'
-
