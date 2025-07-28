@@ -15,7 +15,7 @@ variable "project_name" {
 variable "availability_zones" {
   description = "Name of the project"
   type        = list(any)
-  default     = ["ap-south-1a"]
+  default     = ["ap-south-1a", "ap-south-1b"]
 }
 variable "vpc_cidr" {
   description = "CIDR block for VPC"
