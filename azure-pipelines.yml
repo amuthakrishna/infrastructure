@@ -10,10 +10,10 @@ variables:
     value: $(Build.BuildId)
 
 stages:
-  - stage: DockerLogin
-    displayName: Docker Login
+  - stage: EcrLogin
+    displayName: ECR LOGIN
     jobs:
-      - job: DockerLogin
+      - job: EcrLogin
         displayName: Docker Login Job
         steps:
           - script: |
@@ -23,8 +23,8 @@ stages:
             displayName: 'Login to Docker'
 
   - stage: BuildPush
-    displayName: Build and Push Docker Image
-    dependsOn: DockerLogin
+    displayName: Build and Push ECR Registry
+    dependsOn: EcrLogin
     jobs:
       - job: DockerBuildPush
         displayName: Build and Push Image
@@ -41,7 +41,7 @@ stages:
               echo "Pushing images to ECR..."
               docker push $(container_image_app):$(IMAGE_TAG)
               docker push $(container_image_nginx):$(IMAGE_TAG)
-            displayName: 'Build and Push Docker Images'
+            displayName: 'Build and Push ECR Registrys'
 
   - stage: Terraform
     displayName: Terraform Apply
@@ -79,14 +79,14 @@ stages:
             displayName: 'Terraform Apply'
             workingDirectory: '$(System.DefaultWorkingDirectory)'
 
-  - stage: Destroy
+  - stage: TerraformDestroy
     displayName: Terraform Destroy
     dependsOn: Terraform
     condition: succeeded()
     jobs:
-      - deployment: TerraformDestroy  # ✅ Use 'deployment' instead of 'job'
+      - deployment: TerraformDestroy  
         displayName: Destroy Infrastructure
-        environment: 'Manual-Approval'  # ✅ Now valid here
+        environment: 'Manual-Approval' 
         strategy:
           runOnce:
             deploy:

@@ -1,3 +1,19 @@
+# Application Load Balancer (ALB)
+resource "aws_lb" "main" {
+  name               = "${var.project_name}-alb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.alb.id]
+  subnets            = var.public_subnet_ids
+
+  enable_deletion_protection = false
+
+  tags =  {
+    Name = "${var.project_name}-alb"
+  }
+}
+
+# ALB Security Group
 resource "aws_security_group" "alb" {
   name        = "${var.project_name}-alb-sg"
   description = "Security group for Application Load Balancer"
@@ -24,25 +40,14 @@ resource "aws_security_group" "alb" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = merge(var.tags, {
+  tags =   {
     Name = "${var.project_name}-alb-sg"
-  })
+  }
 }
 
-resource "aws_lb" "main" {
-  name               = "${var.project_name}-alb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb.id]
-  subnets            = var.public_subnet_ids
 
-  enable_deletion_protection = false
 
-  tags = merge(var.tags, {
-    Name = "${var.project_name}-alb"
-  })
-}
-
+# Target Group
 resource "aws_lb_target_group" "app" {
   name     = "${var.project_name}-tg"
   port     = 80
@@ -62,11 +67,12 @@ resource "aws_lb_target_group" "app" {
     protocol            = "HTTP"
   }
 
-  tags = merge(var.tags, {
+  tags = {
     Name = "${var.project_name}-tg"
-  })
+  }
 }
 
+# Listener for ALB
 resource "aws_lb_listener" "app" {
   load_balancer_arn = aws_lb.main.arn
   port              = 80

@@ -1,16 +1,16 @@
 resource "aws_s3_bucket" "app_storage" {
-  bucket = "${var.project_name}-${var.environment}-${random_string.bucket_suffix.result}"
+  bucket = "${var.project_name}-${var.environment}"
 
-  tags = merge(var.tags, {
+  tags =  {
     Name = "${var.project_name}-storage"
-  })
+  }
 }
 
-resource "random_string" "bucket_suffix" {
-  length  = 8
-  special = false
-  upper   = false
-}
+# resource "random_string" "bucket_suffix" {
+#   length  = 8
+#   special = false
+#   upper   = false
+# }
 
 resource "aws_s3_bucket_versioning" "app_storage" {
   bucket = aws_s3_bucket.app_storage.id
@@ -19,15 +19,15 @@ resource "aws_s3_bucket_versioning" "app_storage" {
   }
 }
 
-resource "aws_s3_bucket_server_side_encryption_configuration" "app_storage" {
-  bucket = aws_s3_bucket.app_storage.id
+# resource "aws_s3_bucket_server_side_encryption_configuration" "app_storage" {
+#   bucket = aws_s3_bucket.app_storage.id
 
-  rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
-    }
-  }
-}
+#   rule {
+#     apply_server_side_encryption_by_default {
+#       sse_algorithm = "AES256"
+#     }
+#   }
+# }
 
 resource "aws_s3_bucket_public_access_block" "app_storage" {
   bucket = aws_s3_bucket.app_storage.id
@@ -52,9 +52,9 @@ resource "aws_s3_object" "env_file" {
   })
   content_type = "text/plain"
 
-  tags = merge(var.tags, {
+  tags =  {
     Name = "${var.project_name}-env-file"
-  })
+  }
 }
 
 resource "aws_s3_bucket_policy" "env_file_access" {

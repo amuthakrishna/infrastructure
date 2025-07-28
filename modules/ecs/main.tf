@@ -1,3 +1,5 @@
+# Create aws ECS Cluster
+
 resource "aws_ecs_cluster" "main" {
   name = "${var.project_name}-cluster"
 
@@ -6,10 +8,12 @@ resource "aws_ecs_cluster" "main" {
     value = "enabled"
   }
 
-  tags = merge(var.tags, {
+  tags =  {
     Name = "${var.project_name}-cluster"
-  })
+  }
 }
+
+# Create IAM Roles for ECS Tasks
 
 resource "aws_iam_role" "ecs_task_execution_role" {
   name = "${var.project_name}-ecs-task-execution-role"
@@ -28,10 +32,14 @@ resource "aws_iam_role" "ecs_task_execution_role" {
   })
 }
 
+# IAM Role attached to Policy
+
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_role" {
   role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
+
+# Create App runtime access to AWS
 
 resource "aws_iam_role" "ecs_task_role" {
   name = "${var.project_name}-ecs-task-role"
@@ -74,14 +82,18 @@ resource "aws_iam_role_policy" "ecs_task_s3_policy" {
   })
 }
 
+# Create CloudWatch Logs
+
 resource "aws_cloudwatch_log_group" "ecs" {
   name              = "/ecs/${var.project_name}"
   retention_in_days = 7
 
-  tags = merge(var.tags, {
+  tags =  {
     Name = "${var.project_name}-ecs-logs"
-  })
+  }
 }
+
+# Create Task Defination 
 
 resource "aws_ecs_task_definition" "app" {
   family                   = "${var.project_name}-task"
@@ -150,10 +162,12 @@ resource "aws_ecs_task_definition" "app" {
     }
   ])
 
-  tags = merge(var.tags, {
+  tags =   {
     Name = "${var.project_name}-task-definition"
-  })
+  }
 }
+
+# Create a AWS ECS Service
 
 resource "aws_ecs_service" "app" {
   name            = "${var.project_name}-service"
@@ -179,6 +193,8 @@ resource "aws_ecs_service" "app" {
     Name = "${var.project_name}-service"
   })
 }
+
+# Create SG for ECS
 
 resource "aws_security_group" "ecs" {
   name        = "${var.project_name}-ecs-sg"
@@ -206,10 +222,12 @@ resource "aws_security_group" "ecs" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = merge(var.tags, {
+  tags = {
     Name = "${var.project_name}-ecs-sg"
-  })
+  }
 }
+
+# S3 Environment File access
 
 resource "aws_iam_role_policy" "ecs_execution_s3_env" {
   name   = "${var.project_name}-ecs-execution-s3-env-policy"

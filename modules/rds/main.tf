@@ -21,10 +21,12 @@ resource "aws_db_instance" "postgres" {
   skip_final_snapshot    = true
   deletion_protection    = false
 
-  tags = merge(var.tags, {
+  tags =   {
     Name = "${var.project_name}-postgres"
-  })
+  }
 }
+
+# Security Group for RDS 
 
 resource "aws_security_group" "rds" {
   name        = "${var.project_name}-rds-sg"
@@ -45,16 +47,17 @@ resource "aws_security_group" "rds" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = merge(var.tags, {
+  tags =  {
     Name = "${var.project_name}-rds-sg"
-  })
+  }
 }
+
 
 resource "aws_db_subnet_group" "main" {
   name       = "${var.project_name}-db-subnet-group"
   subnet_ids = var.database_subnet_ids
 
-  tags = merge(var.tags, {
+  tags =  {
     Name = "${var.project_name}-db-subnet-group"
-  })
+  }
 }
