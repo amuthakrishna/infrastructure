@@ -22,59 +22,12 @@ resource "aws_internet_gateway" "main" {
 resource "aws_subnet" "public" {
   count                   = length(var.availability_zones)
   vpc_id                  = aws_vpc.main.id
-  cidr_block              = cidrsubnet(var.vpc_cidr, 8, count.index)
+  cidr_block              = cidrsubnet(var.vpc_cidr, 8, count.index)  # 10.0.0.0/24 , 10.0.1.0/24
   availability_zone       = var.availability_zones[count.index]
   map_public_ip_on_launch = true
 
   tags = {
     Name = "${var.project_name}-public-subnet-${count.index + 1}"
-  }
-}
-
-# Private Subnets
-resource "aws_subnet" "private" {
-  count             = length(var.availability_zones)
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = cidrsubnet(var.vpc_cidr, 8, count.index + 10)
-  availability_zone = var.availability_zones[count.index]
-
-  tags = {
-    Name = "${var.project_name}-private-subnet-${count.index + 1}"
-  }
-}
-
-# Database Subnets
-resource "aws_subnet" "database" {
-  count             = length(var.availability_zones)
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = cidrsubnet(var.vpc_cidr, 8, count.index + 20)
-  availability_zone = var.availability_zones[count.index]
-
-  tags = {
-    Name = "${var.project_name}-database-subnet-${count.index + 1}"
-  }
-}
-#---------------------------
-# Elastic IPs for NAT
-# Elastic IP for NAT
-resource "aws_eip" "nat" {
-  domain = "vpc"
-  depends_on = [aws_internet_gateway.main]
-
-  tags = {
-    Name = "${var.project_name}-nat-eip"
-  }
-}
-
-# NAT Gateway (one for all AZs)
-resource "aws_nat_gateway" "main" {
-  allocation_id = aws_eip.nat.id
-  subnet_id     = aws_subnet.public[0].id
-
-  depends_on = [aws_internet_gateway.main]
-
-  tags = {
-    Name = "${var.project_name}-nat-gateway"
   }
 }
 
@@ -98,6 +51,59 @@ resource "aws_route_table_association" "public" {
   subnet_id      = aws_subnet.public[count.index].id
   route_table_id = aws_route_table.public.id
 }
+
+
+
+
+
+# Private Subnets
+resource "aws_subnet" "private" {
+  count             = length(var.availability_zones)
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = cidrsubnet(var.vpc_cidr, 8, count.index + 10) # 10.0.10.0/24 , 10.0.11.0/24
+  availability_zone = var.availability_zones[count.index]
+
+  tags = {
+    Name = "${var.project_name}-private-subnet-${count.index + 1}"
+  }
+}
+
+# Database Subnets
+resource "aws_subnet" "database" {
+  count             = length(var.availability_zones)
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = cidrsubnet(var.vpc_cidr, 8, count.index + 20) # # 10.0.20.0/24 , 10.0.21.0/24
+  availability_zone = var.availability_zones[count.index]
+
+  tags = {
+    Name = "${var.project_name}-database-subnet-${count.index + 1}"
+  }
+}
+#---------------------------
+# Elastic IPs for NAT
+
+resource "aws_eip" "nat" {
+  domain = "vpc"
+  depends_on = [aws_internet_gateway.main]
+
+  tags = {
+    Name = "${var.project_name}-nat-eip"
+  }
+}
+
+# NAT Gateway 
+resource "aws_nat_gateway" "main" {
+  allocation_id = aws_eip.nat.id
+  subnet_id     = aws_subnet.public[0].id
+
+  depends_on = [aws_internet_gateway.main]
+
+  tags = {
+    Name = "${var.project_name}-nat-gateway"
+  }
+}
+
+
 
 # Route Table for Private & DB Subnets
 resource "aws_route_table" "private" {
