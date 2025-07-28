@@ -26,7 +26,7 @@ resource "aws_internet_gateway" "main" {
 resource "aws_subnet" "public" {
  
   vpc_id            = aws_vpc.main.id
-  cidr_block        = cidrsubnet(var.vpc_cidr, 8, count.index)  # 10.0.0.0/24 , 10.0.1.0/24
+  cidr_block        = cidrsubnet(var.vpc_cidr, 8, 0)  # 10.0.0.0/24 , 10.0.1.0/24
   availability_zone = var.availability_zones[0]
 
   map_public_ip_on_launch = true
@@ -41,7 +41,7 @@ resource "aws_subnet" "public" {
 resource "aws_subnet" "private" {
    
   vpc_id            = aws_vpc.main.id
-  cidr_block        = cidrsubnet(var.vpc_cidr, 8, count.index + 10)   # 10.0.0.0/16 + 8 = 10.0.0.0/24  , 10.0.10.0/24, 10.0.11.0/24 
+  cidr_block        = cidrsubnet(var.vpc_cidr, 8,  10)   # 10.0.0.0/16 + 8 = 10.0.0.0/24  , 10.0.10.0/24, 10.0.11.0/24 
   availability_zone = var.availability_zones[0]
 
   tags = {
@@ -54,7 +54,7 @@ resource "aws_subnet" "private" {
 resource "aws_subnet" "database" {
    
   vpc_id            = aws_vpc.main.id
-  cidr_block        = cidrsubnet(var.vpc_cidr, 8, count.index + 20)  # 10.0.0.0/16 + 8 = 10.0.0.0/24 , 10.0.20.0/24, 10.0.21.0/24
+  cidr_block        = cidrsubnet(var.vpc_cidr, 8,  20)  # 10.0.0.0/16 + 8 = 10.0.0.0/24 , 10.0.20.0/24, 10.0.21.0/24
   availability_zone = var.availability_zones[0]
 
   tags = {
