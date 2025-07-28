@@ -4,7 +4,7 @@ module "vpc" {
   source             = "./modules/vpc"
   project_name       = var.project_name
   vpc_cidr           = var.vpc_cidr
-  availability_zones = data.aws_availability_zones.available.names
+  availability_zones = var.availability_zones
   tags               = var.tags
 }
 
@@ -55,13 +55,13 @@ module "ecs" {
   ecs_task_cpu              = var.ecs_task_cpu
   ecs_task_memory           = var.ecs_task_memory
   ecs_service_desired_count = var.ecs_service_desired_count
-  
- 
-  s3_bucket_arn             = module.s3.s3_bucket_arn
-  env_file_s3_arn           = module.s3.env_file_s3_arn
-  target_group_arn          = module.alb.target_group_arn
-  alb_security_group_id     = module.alb.alb_security_group_id
-  container_image_app           = var.container_image_app
-  container_image_nginx               = var.container_image_nginx
-  tags                      = var.tags
+
+
+  s3_bucket_arn         = module.s3.s3_bucket_arn
+  env_file_s3_arn       = module.s3.env_file_s3_arn
+  target_group_arn      = module.alb.target_group_arn
+  alb_security_group_id = module.alb.alb_security_group_id
+  container_image_app   = var.container_image_app
+  container_image_nginx = var.container_image_nginx
+  tags                  = var.tags
 }

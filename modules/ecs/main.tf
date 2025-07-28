@@ -229,24 +229,24 @@ resource "aws_security_group" "ecs" {
 
 # S3 Environment File access
 
-resource "aws_iam_role_policy" "ecs_execution_s3_env" {
-  name   = "${var.project_name}-ecs-execution-s3-env-policy"
-  role   = aws_iam_role.ecs_task_execution_role.name
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Effect = "Allow",
-        Action = [
-          "s3:GetObject",
-          "s3:GetObjectVersion",
-          "s3:ListBucket"
-        ],
-        Resource = [
-          var.s3_bucket_arn,
-          "${var.s3_bucket_arn}/*"
-        ]
-      }
-    ]
-  })
-}
+# resource "aws_iam_role_policy" "ecs_execution_s3_env" {
+#   name   = "${var.project_name}-ecs-execution-s3-env-policy"
+#   role   = aws_iam_role.ecs_task_execution_role.name
+#   policy = jsonencode({
+#     Version = "2012-10-17",
+#     Statement = [
+#       {
+#         Effect = "Allow",
+#         Action = [
+#           "s3:GetObject",
+#           "s3:GetObjectVersion",
+#           "s3:ListBucket"
+#         ],
+#         Resource = [
+#           var.s3_bucket_arn,
+#           "${var.s3_bucket_arn}/*"
+#         ]
+#       }
+#     ]
+#   })
+# }

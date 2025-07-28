@@ -12,6 +12,11 @@ variable "project_name" {
   default     = "rails-app"
 }
 
+variable "availability_zones" {
+  description = "Name of the project"
+  type        = list(any)
+  default     = ["ap-south-1a"]
+}
 variable "vpc_cidr" {
   description = "CIDR block for VPC"
   type        = string
@@ -87,11 +92,11 @@ variable "tags" {
 variable "container_image_app" {
   description = "ECR image URI for Rails app"
   type        = string
-#  default     = "413745378153.dkr.ecr.ap-south-1.amazonaws.com/rails-app-rails-app:latest"
+  #  default     = "413745378153.dkr.ecr.ap-south-1.amazonaws.com/rails-app-rails-app:latest"
 }
 
 variable "container_image_nginx" {
   description = "ECR image URI for Nginx"
   type        = string
-#  default     = "413745378153.dkr.ecr.ap-south-1.amazonaws.com/rails-app-nginx:v2"
+  #  default     = "413745378153.dkr.ecr.ap-south-1.amazonaws.com/rails-app-nginx:v2"
 }
